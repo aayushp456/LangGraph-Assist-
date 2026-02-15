@@ -1,0 +1,38 @@
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.venv/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Logs
+*.log
+
+# Local data/cache
+backend/data/*.jsonl
+backend/data/*.faiss
+backend/data/*.json
+
+# IDE
+.vscode/
+.idea/
