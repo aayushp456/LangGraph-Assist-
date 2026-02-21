@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from typing import List, Optional
-from openai import OpenAI
+
+from langchain_openai import OpenAIEmbeddings
 
 from backend.config import Settings
 
@@ -9,24 +12,21 @@ class EmbeddingsService:
         self.settings = settings or Settings()
         if not self.settings.openrouter_api_key:
             raise RuntimeError("OPENROUTER_API_KEY is required for embeddings.")
-        # Initialize OpenRouter client with default headers
-        self.client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",
+
+        self._embeddings = OpenAIEmbeddings(
+            model=self.settings.embedding_model,
             api_key=self.settings.openrouter_api_key,
+            base_url=self.settings.openrouter_base_url,
             default_headers={
-                "HTTP-Referer": "https://github.com/aayushp456/LangGraph-Assist-",
-                "X-Title": "Support Copilot",
+                "HTTP-Referer": self.settings.openrouter_site_url,
+                "X-Title": self.settings.openrouter_app_name,
             },
         )
-        # Use an embedding model available via OpenRouter
-        self.model = getattr(self.settings, "embedding_model", "openai/text-embedding-3-small")
 
     def embed_texts(self, texts: List[str]) -> List[List[float]]:
         if not texts:
             return []
-        # Use OpenRouter embeddings endpoint (OpenAI-compatible)
-        resp = self.client.embeddings.create(model=self.model, input=texts)
-        return [d.embedding for d in resp.data]
+        return self._embeddings.embed_documents(texts)
 
     def embed_text(self, text: str) -> List[float]:
-        return self.embed_texts([text])[0]
+        return self._embeddings.embed_query(text)

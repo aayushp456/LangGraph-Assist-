@@ -6,6 +6,11 @@ class Settings(BaseSettings):
     # OpenRouter settings (required)
     openrouter_api_key: str
     openrouter_chat_model: str = "openai/gpt-oss-120b:free"  # Default to a free model
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    openrouter_site_url: str = "https://github.com/aayushp456/LangGraph-Assist-"
+    openrouter_app_name: str = "Support Copilot"
+    llm_temperature: float = 0.2
+    llm_max_tokens: int = 256
     
     # Zendesk settings (optional)
     zendesk_subdomain: Optional[str] = None
