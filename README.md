@@ -1,1 +1,1 @@
-# LangGraph-Assist
+# AI Powered Support Copilot
