@@ -4,7 +4,39 @@ openai>=1.0.0
 langchain>=0.3.0
 langchain-core>=0.3.0
 langchain-openai>=0.2.0
+langchain-text-splitters>=0.3.0
 pydantic
 pydantic-settings
 numpy
 python-dotenv
+
+# Vector Database
+pinecone>=3.0.0
+
+# NLP
+rank-bm25>=0.2.2
+
+# Databases
+motor>=3.3.0
+pymongo>=4.6.0
+
+# LLM Provider (Gemini)
+google-generativeai>=0.3.0
+langchain-google-genai>=1.0.0
+
+# Real-time & Async
+redis>=5.0.0
+websockets>=12.0
+
+# Data Processing
+pandas>=2.0.0
+python-multipart
+
+# Authentication
+bcrypt>=4.1.0
+PyJWT>=2.8.0
+
+# Document Processing (for KB uploads)
+PyPDF2>=3.0.0
+pypdf>=3.0.0
+markdown>=3.5.0

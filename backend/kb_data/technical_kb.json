@@ -1,0 +1,102 @@
+[
+  {
+    "title": "Application crashes on file upload larger than 10MB",
+    "content": "When users attempt to upload files larger than 10MB, the application crashes with an OutOfMemoryError. Root cause: The file upload handler loads the entire file into memory before processing. Workaround: Set MAX_UPLOAD_SIZE=10485760 in the server config. Permanent fix: Implement streaming file upload in v2.4 (PR #1234). Affected versions: v2.0-v2.3.",
+    "category": "BUG"
+  },
+  {
+    "title": "Memory leak in WebSocket handler after prolonged sessions",
+    "content": "Memory usage gradually increases when WebSocket connections remain open for more than 4 hours. The leak is traced to event listeners not being cleaned up on reconnection. Workaround: Restart the WebSocket service every 24 hours via cron job. Fix available in patch v2.3.1. To check current memory: monitor the /health/memory endpoint. Escalate if memory exceeds 2GB.",
+    "category": "BUG"
+  },
+  {
+    "title": "Race condition in concurrent API calls to /api/orders",
+    "content": "When multiple API calls hit /api/orders/create simultaneously for the same user, duplicate orders can be created. This is due to a missing database-level unique constraint. Workaround: Add idempotency key header (X-Idempotency-Key) to all order creation requests. The backend will deduplicate based on this key within a 5-minute window. Fix: Add unique constraint migration in v2.5.",
+    "category": "BUG"
+  },
+  {
+    "title": "Null pointer exception on missing user profile fields",
+    "content": "Users who signed up via SSO may have incomplete profiles (missing phone, address). Accessing /api/users/{id}/profile throws a NullPointerException if optional fields are null. Workaround: Use /api/users/{id}/profile?safe=true which returns default values for missing fields. Permanent fix scheduled for v2.4 sprint 3.",
+    "category": "BUG"
+  },
+  {
+    "title": "401 Unauthorized - API key expired or invalid",
+    "content": "HTTP 401 errors indicate the API key is either expired, revoked, or malformed. Troubleshooting steps: 1) Verify the API key in the dashboard at /settings/api-keys. 2) Check if the key has been rotated — keys expire every 90 days by default. 3) Ensure the key is passed in the Authorization header as 'Bearer <key>'. 4) Check if IP allowlist is configured and the request IP is permitted. If the key was compromised, revoke it immediately and generate a new one.",
+    "category": "API_ISSUE"
+  },
+  {
+    "title": "429 Too Many Requests - Rate limit exceeded",
+    "content": "The API enforces rate limits per API key: Free tier: 60 req/min, Pro tier: 600 req/min, Enterprise: 6000 req/min. When exceeded, the API returns HTTP 429 with headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset. Best practices: 1) Implement exponential backoff with jitter. 2) Cache responses where possible. 3) Use bulk endpoints instead of individual calls. 4) Contact support to request a rate limit increase for production workloads.",
+    "category": "API_ISSUE"
+  },
+  {
+    "title": "503 Service Unavailable - Backend pool exhausted",
+    "content": "HTTP 503 occurs when all backend instances are busy or unhealthy. Common causes: 1) Traffic spike exceeding auto-scaling capacity — scaling takes 2-3 minutes. 2) A downstream dependency (database, cache) is slow or down. 3) A recent deployment introduced a performance regression. Immediate actions: Check status page at status.example.com. If widespread, the on-call team is auto-paged. If isolated to one customer, check if their requests are triggering expensive queries.",
+    "category": "API_ISSUE"
+  },
+  {
+    "title": "CORS errors when calling API from browser",
+    "content": "If the browser console shows 'Access-Control-Allow-Origin' errors, the API request is being blocked by CORS policy. Solutions: 1) Ensure the frontend domain is added to ALLOWED_ORIGINS in the API config. 2) For local development, add http://localhost:3000 to the allowlist. 3) Check that preflight OPTIONS requests are not being blocked by a firewall or WAF. 4) If using a custom domain, make sure it exactly matches (including protocol and port).",
+    "category": "API_ISSUE"
+  },
+  {
+    "title": "API timeout on large data exports",
+    "content": "Export endpoints (/api/export/csv, /api/export/json) may timeout for datasets larger than 100k rows. The default request timeout is 30 seconds. Solutions: 1) Use the async export endpoint POST /api/export/async which returns a job ID. 2) Poll GET /api/export/jobs/{id} for completion. 3) Download the file from the provided URL when status is 'completed'. Maximum export size: 1M rows. For larger exports, use date-range filters to split into batches.",
+    "category": "API_ISSUE"
+  },
+  {
+    "title": "Response time exceeds 5 seconds - N+1 query issue",
+    "content": "If API response times exceed 5 seconds, the most common cause is N+1 database queries. Diagnosis: 1) Enable query logging with LOG_LEVEL=debug. 2) Check for endpoints that make multiple sequential DB calls in a loop. 3) Use the /admin/slow-queries endpoint to see queries taking >1s. Fix: Use eager loading (JOIN) instead of lazy loading. Common offenders: /api/orders (loads items one by one), /api/users (loads permissions per user). Add 'include' query parameter to use optimized queries.",
+    "category": "PERFORMANCE"
+  },
+  {
+    "title": "High CPU usage - JSON serialization bottleneck",
+    "content": "Profiling shows 40% of CPU time spent in JSON serialization for large response payloads. This affects endpoints returning >1000 items. Solutions: 1) Enable response compression (gzip) — reduces CPU for network I/O tradeoff. 2) Use pagination (limit=100 default) to reduce payload size. 3) Switch to orjson serializer which is 3-5x faster than stdlib json. 4) For internal service-to-service calls, consider msgpack or protobuf.",
+    "category": "PERFORMANCE"
+  },
+  {
+    "title": "Database connection pool exhausted",
+    "content": "Error 'too many connections' or connection timeouts indicate the DB connection pool is exhausted. Default pool size: 20 connections. Check with: SELECT count(*) FROM pg_stat_activity. Solutions: 1) Increase POOL_SIZE in database config (max recommended: 100). 2) Ensure connections are properly returned to the pool (check for missing connection.close() calls). 3) Add connection timeout: POOL_TIMEOUT=30. 4) Monitor with /health/db endpoint. Escalate if the issue persists after increasing pool size.",
+    "category": "PERFORMANCE"
+  },
+  {
+    "title": "Slow dashboard loading - excessive API calls",
+    "content": "The dashboard makes 12 separate API calls on initial load, causing slow rendering. Optimization steps: 1) Use the consolidated /api/dashboard/summary endpoint which combines stats, recent tickets, and alerts into one response. 2) Enable client-side caching with Cache-Control headers (already set to max-age=30 for stats endpoints). 3) Lazy-load non-critical sections (charts, history). Target: dashboard should load in under 2 seconds.",
+    "category": "PERFORMANCE"
+  },
+  {
+    "title": "Feature X deprecated in v3.0 - migrate to Feature Y",
+    "content": "The legacy /api/v1/search endpoint is deprecated as of v3.0 and will be removed in v4.0. Migration guide: 1) Replace /api/v1/search with /api/v2/search. 2) The 'query' parameter is now 'q'. 3) Results format changed: 'items' array is now 'results'. 4) Pagination changed from offset-based to cursor-based. 5) Add 'fields' parameter to select specific fields (reduces response size by 60%). See migration guide at docs.example.com/migration/v3.",
+    "category": "FEATURE_REQUEST"
+  },
+  {
+    "title": "Dark mode not rendering correctly",
+    "content": "Users reporting dark mode issues should try: 1) Clear browser cache and hard refresh (Ctrl+Shift+R). 2) Check if they have a browser extension overriding styles. 3) Verify they're on the latest version (dark mode was fixed in v2.3.2). 4) If using Safari, update to Safari 16+ (known CSS variable bug in older versions). 5) Check if their OS-level dark mode preference conflicts — our app respects prefers-color-scheme unless manually overridden in settings.",
+    "category": "FEATURE_REQUEST"
+  },
+  {
+    "title": "Export to PDF fails with large reports",
+    "content": "PDF export fails for reports with more than 500 rows or containing images. Root cause: The PDF renderer runs out of memory for large documents. Workaround: 1) Export to CSV instead (no size limit). 2) For PDF, filter the report to fewer than 500 rows. 3) Use the scheduled report feature which generates PDFs in background with higher memory limits. 4) For enterprise customers, request async PDF generation via /api/reports/pdf/async.",
+    "category": "FEATURE_REQUEST"
+  },
+  {
+    "title": "Two-factor authentication setup failing",
+    "content": "If users cannot set up 2FA: 1) Verify their system clock is synced (TOTP requires accurate time, ±30 seconds). 2) Try a different authenticator app (Google Authenticator, Authy, 1Password). 3) If the QR code won't scan, use the manual setup key displayed below the QR code. 4) If they previously had 2FA and it stopped working, an admin can reset it from /admin/users/{id}/security. 5) Backup codes are generated during setup — remind users to save them.",
+    "category": "FEATURE_REQUEST"
+  },
+  {
+    "title": "Webhook delivery failures and retry policy",
+    "content": "Webhooks that fail to deliver (non-2xx response or timeout after 10s) are retried with exponential backoff: retry 1 at 1 min, retry 2 at 5 min, retry 3 at 30 min, retry 4 at 2 hours, retry 5 at 12 hours. After 5 failures, the webhook is disabled and the admin is notified via email. To debug: 1) Check /admin/webhooks/logs for delivery attempts and response codes. 2) Ensure the endpoint is publicly accessible (no firewall blocking). 3) Verify SSL certificate is valid. 4) Response must be returned within 10 seconds.",
+    "category": "API_ISSUE"
+  },
+  {
+    "title": "Escalation criteria for support tickets",
+    "content": "A ticket should be escalated when: 1) Data loss or corruption is reported. 2) Security breach or unauthorized access suspected. 3) Complete service outage affecting multiple users. 4) SLA breach risk (response time >4 hours for P1, >8 hours for P2). 5) Legal or compliance issue (GDPR deletion request, subpoena). 6) Customer is a VIP/Enterprise account with dedicated SLA. 7) The issue requires infrastructure-level changes. Escalation path: L1 Support → L2 Engineering → On-Call Engineer → Engineering Manager.",
+    "category": "GENERAL_INQUIRY"
+  },
+  {
+    "title": "Standard incident response runbook",
+    "content": "When a service incident is detected: 1) Acknowledge the alert within 5 minutes. 2) Open an incident channel in Slack (#incident-YYYY-MM-DD). 3) Identify blast radius: how many users affected? Which regions? 4) If >10% of users affected, post to status page. 5) Attempt known mitigations (restart service, rollback deploy, failover to backup). 6) If not resolved in 30 minutes, escalate to engineering manager. 7) Post-incident: write RCA within 48 hours, schedule blameless retrospective. Templates at wiki.example.com/runbooks.",
+    "category": "GENERAL_INQUIRY"
+  }
+]

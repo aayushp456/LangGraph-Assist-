@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: support-agent-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=support_agent
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:

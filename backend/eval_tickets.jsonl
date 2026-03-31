@@ -1,0 +1,10 @@
+{"text": "I forgot my password and the reset link doesn't work", "category": "FAQ", "relevant_docs": ["password_reset_guide", "account_recovery"]}
+{"text": "My account was charged twice for the same subscription", "category": "ESCALATE", "relevant_docs": ["billing_disputes", "refund_policy"]}
+{"text": "How do I cancel my subscription?", "category": "FAQ", "relevant_docs": ["subscription_cancellation", "account_settings"]}
+{"text": "I think my account has been hacked - unauthorized purchases", "category": "ESCALATE", "relevant_docs": ["security_breach", "fraud_protection"]}
+{"text": "The app crashes every time I try to upload a file", "category": "SUMMARIZE", "relevant_docs": ["file_upload_troubleshooting", "known_issues"]}
+{"text": "Where can I find my invoice from last month?", "category": "FAQ", "relevant_docs": ["billing_history", "invoice_download"]}
+{"text": "Legal notice: GDPR data deletion request", "category": "ESCALATE", "relevant_docs": ["gdpr_compliance", "data_deletion"]}
+{"text": "How do I change my email address?", "category": "FAQ", "relevant_docs": ["account_settings", "email_change"]}
+{"text": "Payment failed but I was still charged", "category": "ESCALATE", "relevant_docs": ["payment_issues", "billing_disputes"]}
+{"text": "Can I upgrade to the premium plan?", "category": "FAQ", "relevant_docs": ["plan_upgrade", "pricing"]}
